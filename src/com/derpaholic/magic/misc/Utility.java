@@ -1,4 +1,4 @@
-package com.derpaholic.magic.api;
+package com.derpaholic.magic.misc;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -19,6 +19,7 @@ public class Utility {
     public static JsonObject getJsonFromURL(String url) {
         try {
             HttpURLConnection request = (HttpURLConnection) new URL(url).openConnection();
+            request.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
             request.connect();
 
             JsonParser jp = new JsonParser();

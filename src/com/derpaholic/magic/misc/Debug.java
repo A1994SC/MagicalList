@@ -1,4 +1,4 @@
-package com.derpaholic.magic;
+package com.derpaholic.magic.misc;
 
 public class Debug {
 

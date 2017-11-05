@@ -1,6 +1,7 @@
 package com.derpaholic.magic.api;
 
-import com.derpaholic.magic.Constants;
+import com.derpaholic.magic.misc.Constants;
+import com.derpaholic.magic.misc.Utility;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
