@@ -3,11 +3,11 @@ package com.derpaholic.magic.api;
 import com.derpaholic.magic.misc.Constants;
 import com.derpaholic.magic.misc.Debug;
 import com.derpaholic.magic.misc.Utility;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import jdk.nashorn.internal.ir.debug.JSONWriter;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class Gathering {
@@ -35,7 +35,6 @@ public class Gathering {
 
         for(String field : fields) {
             try {
-                System.out.println();
                 if(json.get(Constants.GATHER_DEFAULT).getAsJsonObject().get(field).isJsonArray())
                     list.put(field, Constants.GSON.toJson(json.getAsJsonObject(Constants.GATHER_DEFAULT).getAsJsonArray(field)));
                 else
@@ -43,42 +42,14 @@ public class Gathering {
             } catch(Exception e) {
                 list.put(field, Constants.NO_DATA);
             }
-            if(Debug.isDebug())
-                System.out.println(list.get(field));
         }
 
         return list;
     }
 
     public static JsonObject getFieldsFromCards(JsonObject jobj, String card, String... fields) {
-        if(jobj == null) {
-            jobj = new JsonObject();
-            jobj.add(Constants.CARDS_ID, new JsonArray());
-        } else if(jobj.get(Constants.CARDS_ID) == null)
-            jobj.add(Constants.CARDS_ID, new JsonArray());
-
-        HashMap<String, String> t = getFieldsFromCard(card, fields);
-
-        JsonObject obj = Utility.getObjectFromArray(Constants.MID, t.get(Constants.MID), jobj.get("cards").getAsJsonArray());
-        if(obj != null) {
-            try {
-                for(String key : t.keySet())
-                    obj.add(key, new JsonParser().parse(t.get(fields)));
-            } catch(Exception e) {
-                System.out.println(card);
-            }
-        } else {
-            JsonObject hold = new JsonObject();
-            try {
-                for(String key : t.keySet())
-                    hold.add(key, new JsonParser().parse(t.get(fields)));
-                jobj.get("cards").getAsJsonArray().add(hold);
-            } catch(Exception e) {
-                System.err.println(card);
-                e.printStackTrace();
-            }
-
-        }
+        Utility.initJsonObject(jobj);
+        Utility.addMapToJsonObject(getFieldsFromCard(card, fields), jobj);
 
         return jobj;
     }

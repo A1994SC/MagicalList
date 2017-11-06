@@ -1,14 +1,14 @@
 package com.derpaholic.magic.misc;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Utility {
@@ -58,4 +58,49 @@ public class Utility {
         }
         return null;
     }
+
+
+    public static void initJsonObject(JsonObject jsoObj) {
+        if(jsoObj == null) {
+            jsoObj = new JsonObject();
+            jsoObj.add(Constants.CARDS_ID, new JsonArray());
+        } else if(jsoObj.get(Constants.CARDS_ID) == null)
+            jsoObj.add(Constants.CARDS_ID, new JsonArray());
+    }
+
+    public static void addMapToJsonObject(HashMap<String, String> t, JsonObject jobj) {
+        JsonObject obj = Utility.getObjectFromArray(Constants.MID, t.get(Constants.MID), jobj.get(Constants.CARDS_ID).getAsJsonArray());
+        JsonObject jsoObj;
+
+        /*
+         * https://img.devrant.com/devrant/rant/r_464533_gMBvP.jpg
+         */
+        try {
+            jsoObj = new JsonParser().parse(t.toString()).getAsJsonObject();
+        } catch(Exception e) {
+            jsoObj = new JsonParser().parse(Constants.GSON.toJson(t)).getAsJsonObject();
+        }
+        /*
+         * WHY!!!!!!!......
+         */
+
+        if(obj != null) {
+            for(Map.Entry entry :  jsoObj.entrySet()) {
+                try {
+                    if(jsoObj.get(entry.getKey().toString()).isJsonArray())
+                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonArray());
+                    else if(jsoObj.get(entry.getKey().toString()).isJsonObject())
+                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonObject());
+                    else
+                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonPrimitive());
+                } catch(Exception e) {
+                    System.out.println(entry.getKey().toString());
+                    System.out.println(jsoObj.get(entry.getKey().toString()));
+                }
+            }
+        } else {
+            jobj.getAsJsonArray(Constants.CARDS_ID).add(jsoObj);
+        }
+    }
+
 }

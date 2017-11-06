@@ -52,7 +52,10 @@ public class Scryfall {
 
         for(String field : fields) {
             try {
-                list.put(field, json.get(field).getAsString());
+                if(json.get(field).isJsonArray())
+                    list.put(field, Constants.GSON.toJson(json.getAsJsonArray(field)));
+                else
+                    list.put(field, json.get(field).getAsString());
             } catch(NullPointerException e) {
                 list.put(field, Constants.NO_DATA);
             }
@@ -62,34 +65,8 @@ public class Scryfall {
     }
 
     public static JsonObject getFieldsFromCard(JsonObject jobj, String card, String... fields) {
-        if(jobj == null) {
-            jobj = new JsonObject();
-            jobj.add(Constants.CARDS_ID, new JsonArray());
-        } else if(jobj.get(Constants.CARDS_ID) == null)
-            jobj.add(Constants.CARDS_ID, new JsonArray());
-
-        HashMap<String, String> t = getFieldsFromCard(card, fields);
-
-        JsonObject obj = Utility.getObjectFromArray(Constants.MID, t.get(Constants.MID), jobj.get(Constants.CARDS_ID).getAsJsonArray());
-        if(obj != null) {
-            try {
-                for(String key : t.keySet())
-                    obj.add(key, new JsonPrimitive(t.get(key)));
-            } catch(Exception e) {
-                System.out.println(card);
-            }
-        } else {
-            JsonObject hold = new JsonObject();
-            try {
-                for(String key : t.keySet())
-                    hold.add(key, new JsonPrimitive(t.get(key)));
-                jobj.getAsJsonArray(Constants.CARDS_ID).add(hold);
-            } catch(Exception e) {
-                System.err.println(card);
-                e.printStackTrace();
-            }
-
-        }
+        Utility.initJsonObject(jobj);
+        Utility.addMapToJsonObject(getFieldsFromCard(card, fields), jobj);
 
         return jobj;
     }
