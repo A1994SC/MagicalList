@@ -16,6 +16,8 @@ public class Constants {
     public static final String SCRYFALL_URL = "https://api.scryfall.com/";
     public static final String SCRYFALL_CARD = SCRYFALL_URL + "cards/";
 
+    public static final String PRINTING_ID = "printings";
+
 
     public static final String MID = "multiverse_id";
     public static final String MID_GATH = "multiverseid";

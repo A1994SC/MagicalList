@@ -1,7 +1,9 @@
 package com.derpaholic.magic.misc;
 
-import com.google.gson.*;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -85,7 +87,7 @@ public class Utility {
          */
 
         if(obj != null) {
-            for(Map.Entry entry :  jsoObj.entrySet()) {
+            for(Map.Entry entry : jsoObj.entrySet()) {
                 try {
                     if(jsoObj.get(entry.getKey().toString()).isJsonArray())
                         obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonArray());
