@@ -2,7 +2,6 @@ package com.derpaholic.magic.api;
 
 import com.derpaholic.magic.misc.Constants;
 import com.derpaholic.magic.misc.Utility;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
@@ -29,12 +28,9 @@ public class Scryfall {
     /**
      * Will always at least return the 'multiverse_id'
      */
-    public static HashMap<String, String> getFieldsFromCard(String card, String... fields) {
-        if(!card.matches(CARD_FORMAT_REG)) {
+    public static HashMap<String, Object> getFieldsFromCard(String card, String... fields) {
+        if(!card.matches(CARD_FORMAT_REG))
             return null;
-        }
-
-        HashMap<String, String> list = new HashMap<>();
 
         String mod_card = card.toLowerCase();
 
@@ -43,25 +39,27 @@ public class Scryfall {
         }
 
         JsonObject json = Utility.getJsonFromURL(Constants.SCRYFALL_CARD + mod_card.replace(':', '/'));
+        JsonObject temp = new JsonObject();
 
         try {
-            list.put(Constants.MID, json.get(Constants.MID).getAsString());
+            temp.add(Constants.MID, json.get(Constants.MID));
         } catch(NullPointerException e) {
-            list.put(Constants.MID, Constants.NO_DATA);
+            temp.add(Constants.MID, new JsonPrimitive(Constants.NO_DATA));
         }
+
 
         for(String field : fields) {
             try {
                 if(json.get(field).isJsonArray())
-                    list.put(field, Constants.GSON.toJson(json.getAsJsonArray(field)));
+                    temp.add(field, json.getAsJsonArray(field));
                 else
-                    list.put(field, json.get(field).getAsString());
+                    temp.add(field, json.get(field));
             } catch(NullPointerException e) {
-                list.put(field, Constants.NO_DATA);
+                temp.add(field, new JsonPrimitive(Constants.NO_DATA));
             }
         }
 
-        return list;
+        return Utility.jsonObjectToHashMap(temp);
     }
 
     public static JsonObject getFieldsFromCard(JsonObject jobj, String card, String... fields) {

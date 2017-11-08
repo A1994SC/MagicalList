@@ -1,14 +1,12 @@
 package com.derpaholic.magic.misc;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -70,39 +68,59 @@ public class Utility {
             jsoObj.add(Constants.CARDS_ID, new JsonArray());
     }
 
-    public static void addMapToJsonObject(HashMap<String, String> t, JsonObject jobj) {
-        JsonObject obj = Utility.getObjectFromArray(Constants.MID, t.get(Constants.MID), jobj.get(Constants.CARDS_ID).getAsJsonArray());
-        JsonObject jsoObj;
+    public static HashMap<String, Object> jsonObjectToHashMap(JsonObject jObj) {
+        HashMap<String, Object> list = new HashMap<>();
 
-        /*
-         * https://img.devrant.com/devrant/rant/r_464533_gMBvP.jpg
-         */
-        try {
-            jsoObj = new JsonParser().parse(t.toString()).getAsJsonObject();
-        } catch(Exception e) {
-            jsoObj = new JsonParser().parse(Constants.GSON.toJson(t)).getAsJsonObject();
+        for(Map.Entry<String, JsonElement> ent : jObj.entrySet()) {
+            if(ent.getValue().isJsonPrimitive())
+                list.put(ent.getKey(), ent.getValue().getAsString());
+            else {
+                ArrayList<String> t = new ArrayList<>();
+                for(int i = 0; i < ent.getValue().getAsJsonArray().size(); i++) {
+                    t.add(ent.getValue().getAsJsonArray().get(i).getAsString());
+                }
+                list.put(ent.getKey(), t);
+            }
         }
-        /*
-         * WHY!!!!!!!......
-         */
+
+        return list;
+    }
+
+    private static JsonObject getJsonFromHashMap(HashMap<String, Object> map) {
+        JsonObject json = new JsonObject();
+        JsonArray ary;
+        ArrayList<String> aryLst;
+
+        for(String t : map.keySet()) {
+            if(map.get(t).getClass().equals(String.class))
+                json.add(t, new JsonPrimitive(((String) map.get(t))));
+            else {
+                ary = new JsonArray();
+                try {
+                    aryLst = (ArrayList<String>) map.get(t);
+                } catch(Exception e) {
+                    continue;
+                }
+                for(String l : aryLst)
+                    ary.add(l);
+                json.add(t, ary);
+            }
+        }
+
+        return json;
+    }
+
+    public static void addMapToJsonObject(HashMap<String, Object> t, JsonObject jobj) {
+        JsonObject obj = Utility.getObjectFromArray(Constants.MID, t.get(Constants.MID).toString(), jobj.get(Constants.CARDS_ID).getAsJsonArray());
+        JsonObject jsoObj = getJsonFromHashMap(t);
 
         if(obj != null) {
-            for(Map.Entry entry : jsoObj.entrySet()) {
-                try {
-                    if(jsoObj.get(entry.getKey().toString()).isJsonArray())
-                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonArray());
-                    else if(jsoObj.get(entry.getKey().toString()).isJsonObject())
-                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonObject());
-                    else
-                        obj.add(entry.getKey().toString(), jsoObj.get(entry.getKey().toString()).getAsJsonPrimitive());
-                } catch(Exception e) {
-                    System.out.println(entry.getKey().toString());
-                    System.out.println(jsoObj.get(entry.getKey().toString()));
-                }
-            }
+            for(Map.Entry ent : jsoObj.entrySet())
+                obj.add(ent.getKey().toString(), (JsonElement) ent.getValue());
         } else {
             jobj.getAsJsonArray(Constants.CARDS_ID).add(jsoObj);
         }
     }
+
 
 }

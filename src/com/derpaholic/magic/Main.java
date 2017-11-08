@@ -3,7 +3,6 @@ package com.derpaholic.magic;
 import com.derpaholic.magic.api.Gathering;
 import com.derpaholic.magic.api.Scryfall;
 import com.derpaholic.magic.misc.Constants;
-import com.derpaholic.magic.misc.Debug;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -20,31 +19,19 @@ public class Main {
         JsonObject json = new JsonObject();
         int i, j;
 
-        if(Debug.isDebug())
-            System.out.println("Talking to Scryfall");
         if(t != null)
             for(String temp : t)
-                Scryfall.getFieldsFromCard(json, temp, "usd", "name");
-        if(Debug.isDebug())
-            System.out.println("Done talking to Scryfall");
+                Scryfall.getFieldsFromCard(json, temp, "name", "set_name", "colors");
 
         JsonArray ary = json.getAsJsonArray(Constants.CARDS_ID);
 
-        if(Debug.isDebug())
-            System.out.println("Talking to Gather");
         for(i = 0; i < ary.size(); i++) {
             Gathering.getFieldsFromCards(json, ary.get(i).getAsJsonObject().get(Constants.MID).getAsString(), "printings");
         }
 
-        if(Debug.isDebug())
-            System.out.println("Done talking to Gather");
-
-        if(Debug.isDebug())
-            System.out.println("Processing sets");
         JsonArray jAry = json.getAsJsonArray(Constants.CARDS_ID);
-        HashMap<String, ArrayList<JsonObject>> setList = new HashMap<>();
+        HashMap<String, JsonArray> setList = new HashMap<>();
         JsonArray temp;
-
 
         for(i = 0; i < jAry.size(); i++) {
             temp = jAry.get(i).getAsJsonObject().get(Constants.PRINTING_ID).getAsJsonArray();
@@ -52,20 +39,32 @@ public class Main {
                 if(setList.containsKey(temp.get(j).getAsString()))
                     setList.get(temp.get(j).getAsString()).add(jAry.get(i).getAsJsonObject());
                 else {
-                    setList.put(temp.get(j).getAsString(), new ArrayList<>());
+                    setList.put(temp.get(j).getAsString(), new JsonArray());
                     setList.get(temp.get(j).getAsString()).add(jAry.get(i).getAsJsonObject());
                 }
             }
         }
 
-        if(Debug.isDebug())
-            System.out.println("Done processing sets");
-
         for(String t1 : setList.keySet())
-            System.out.println(t1);
+            System.out.println(t1 + "\t:\t" + Constants.GSON_PRETTY.toJson(setList.get(t1)) + "\n==================================");
 
-//        for(String t1 : setList.keySet())
-//            for(JsonObject t2: setList.get(t1))
-//                System.out.println(t1 + "\t:\t" + Constants.GSON.toJson(t2));
+
+        HashMap<String, JsonArray> entList = new HashMap<>();
+        JsonObject jObj;
+        String[] fields = new String[]{"name", "colors"};
+
+        for(String l : setList.keySet()) {
+            temp = setList.get(l).getAsJsonArray();
+            jObj = new JsonObject();
+            for(i = 0; i < temp.size(); i++)
+                for(j = 0; j < fields.length; j++)
+                    jObj.add(fields[j], temp.get(i).getAsJsonObject().get(fields[j]));
+            if(entList.get(l) == null)
+                entList.put(l, new JsonArray());
+            entList.get(l).add(jObj);
+        }
+
+        for(String l : entList.keySet())
+            System.out.println(l + "\t:\t" + Constants.GSON_PRETTY.toJson(entList.get(l)) + "\n==================================");
     }
 }

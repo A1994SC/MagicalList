@@ -1,13 +1,11 @@
 package com.derpaholic.magic.api;
 
 import com.derpaholic.magic.misc.Constants;
-import com.derpaholic.magic.misc.Debug;
 import com.derpaholic.magic.misc.Utility;
-import com.google.gson.*;
-import jdk.nashorn.internal.ir.debug.JSONWriter;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.util.HashMap;
-import java.util.Map;
 
 
 public class Gathering {
@@ -19,32 +17,31 @@ public class Gathering {
      * Will always return "multiverseid" as "multiverse_id"
      */
 
-    public static HashMap<String, String> getFieldsFromCard(String card, String... fields) {
+    public static HashMap<String, Object> getFieldsFromCard(String card, String... fields) {
         if(!Utility.isRegexValid("[0-9]+", card))
             return null;
 
-        HashMap<String, String> list = new HashMap<>();
-
         JsonObject json = Utility.getJsonFromURL(Constants.GATHER_CARD + card);
+        JsonObject temp = new JsonObject();
 
         try {
-            list.put(Constants.MID, json.get(Constants.GATHER_DEFAULT).getAsJsonObject().get(Constants.MID_GATH).getAsString());
+            temp.add(Constants.MID, json.get(Constants.GATHER_DEFAULT).getAsJsonObject().get(Constants.MID_GATH));
         } catch(Exception e) {
-            list.put(Constants.MID, Constants.NO_DATA);
+            temp.add(Constants.MID, new JsonPrimitive(Constants.NO_DATA));
         }
 
         for(String field : fields) {
             try {
                 if(json.get(Constants.GATHER_DEFAULT).getAsJsonObject().get(field).isJsonArray())
-                    list.put(field, Constants.GSON.toJson(json.getAsJsonObject(Constants.GATHER_DEFAULT).getAsJsonArray(field)));
+                    temp.add(field, json.getAsJsonObject(Constants.GATHER_DEFAULT).getAsJsonArray(field));
                 else
-                    list.put(field, json.getAsJsonObject(Constants.GATHER_DEFAULT).get(field).getAsString());
+                    temp.add(field, json.getAsJsonObject(Constants.GATHER_DEFAULT).get(field));
             } catch(Exception e) {
-                list.put(field, Constants.NO_DATA);
+                temp.add(field, new JsonPrimitive(Constants.NO_DATA));
             }
         }
 
-        return list;
+        return Utility.jsonObjectToHashMap(temp);
     }
 
     public static JsonObject getFieldsFromCards(JsonObject jobj, String card, String... fields) {
